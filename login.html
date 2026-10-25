@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-5">
+        <div class="card p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="fs-1 mb-2">🛡️</div>
+                <h3 class="fw-bold text-dark">Welcome to TrustVault</h3>
+                <p class="text-muted small">Secure Document Portal & Cryptographic Audit Trail</p>
+            </div>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="username" class="form-label small fw-bold text-uppercase text-muted">Username</label>
+                    <input type="text" class="form-control form-control-lg bg-light border-0" id="username" name="username" placeholder="Enter username" required autofocus>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label small fw-bold text-uppercase text-muted">Password</label>
+                    <input type="password" class="form-control form-control-lg bg-light border-0" id="password" name="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-bold shadow-sm">Sign In</button>
+            </form>
+
+            <hr class="my-4 text-muted opacity-25">
+            
+            <div class="text-center">
+                <small class="text-muted">
+                    <strong>Quick Test Credentials:</strong><br>
+                    Admin: <code>admin</code> / <code>admin123</code><br>
+                    Viewer: <code>viewer</code> / <code>viewer123</code>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

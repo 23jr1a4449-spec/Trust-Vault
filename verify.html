@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card p-5">
+            <h3 class="fw-bold text-dark mb-2">Cryptographic Audit Verification</h3>
+            <p class="text-muted">Analyzing SHA-256 hash chains across historical ledger events...</p>
+            
+            {% if is_valid %}
+                <div class="alert alert-success mt-4 p-4 border-0 rounded-3">
+                    <h5 class="alert-heading fw-bold">✅ Chain Integrity Verified 100%</h5>
+                    <p class="mb-0 text-muted">All previous hashes match current blocks perfectly. Zero tampering detected across the audit log history.</p>
+                </div>
+            {% else %}
+                <div class="alert alert-danger mt-4 p-4 border-0 rounded-3">
+                    <h5 class="alert-heading fw-bold">⚠️ Warning: Compromised Ledger!</h5>
+                    <p class="mb-0">The hash chain broke at Audit Log ID <strong>{{ compromised_log_id }}</strong>. Unauthorized modification detected.</p>
+                </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary px-4 py-2 rounded-3 fw-bold">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

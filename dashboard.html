@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        {% if chain_is_valid %}
+            <div class="alert alert-success d-flex align-items-center shadow-sm border-0 py-3" role="alert">
+                <div class="fs-5 me-2">🛡️</div>
+                <div><strong>System Security Status:</strong> Cryptographic Audit Chain Integrity is 100% Intact. Zero tampering detected.</div>
+            </div>
+        {% else %}
+            <div class="alert alert-danger d-flex align-items-center shadow-sm border-0 py-3" role="alert">
+                <div class="fs-5 me-2">⚠️</div>
+                <div><strong>Security Alert:</strong> Audit Chain Tampering Detected! Sequence mismatch in log history.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold text-dark mb-1">Secure Workspace Dashboard</h2>
+        <p class="text-muted mb-0">Authenticated as <strong class="text-dark">{{ current_user.username }}</strong> with <span class="badge bg-dark">{{ current_user.role }}</span> privileges.</p>
+    </div>
+</div>
+
+{% if current_user.role == 'Admin' %}
+<div class="card p-4 mb-4">
+    <h4 class="mb-3 fw-bold text-dark d-flex align-items-center gap-2">
+        <span>📤</span> Upload Confidential Document
+    </h4>
+    <form action="{{ url_for('upload_document') }}" method="POST" enctype="multipart/form-data">
+        <div class="input-group">
+            <input type="file" name="file" class="form-control form-control-lg bg-light border-0" required>
+            <button type="submit" class="btn btn-dark px-4 fw-bold">Upload File</button>
+        </div>
+        <small class="text-muted mt-2 d-block">Allowed formats: PDF, TXT, PNG, JPG, JPEG, DOCX</small>
+    </form>
+</div>
+{% endif %}
+
+<div class="card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h4 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+            <span>📁</span> Documents Vault
+        </h4>
+        <div style="width: 280px;">
+            <input type="text" id="docSearch" class="form-control bg-light border-0" placeholder="🔍 Search documents..." onkeyup="filterDocs()">
+        </div>
+    </div>
+    <div class="list-group list-group-flush">
+        {% for doc in documents %}
+            <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-3 border rounded-3 mb-2 bg-light bg-opacity-50">
+                <div>
+                    <span class="fw-bold text-dark fs-6">{{ doc.filename }}</span>
+                    <br><small class="text-muted">Uploaded on {{ doc.upload_timestamp.strftime('%Y-%m-%d %H:%M') }} UTC</small>
+                    {% if doc.file_hash %}
+                        <br><small class="text-muted font-monospace" style="font-size: 0.75rem;">SHA-256: {{ doc.file_hash[:32] }}...</small>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('download_document', doc_id=doc.id) }}" class="btn btn-sm btn-outline-primary px-3 fw-semibold">Download File</a>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <p class="mb-0">No documents uploaded in the vault yet.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h4 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+            <span>🔐</span> Tamper-Evident Audit Trail
+        </h4>
+        {% if current_user.role == 'Admin' %}
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('export_logs') }}" class="btn btn-sm btn-outline-secondary px-3 fw-semibold">📥 Export CSV</a>
+                <a href="{{ url_for('verify_audit_trail') }}" class="btn btn-sm btn-success px-3 fw-semibold">Verify Audit Chain Integrity</a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-uppercase small text-muted">
+                <tr>
+                    <th>Time (UTC)</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>SHA-256 Hash</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td><small class="text-muted fw-semibold">{{ log.timestamp.strftime('%H:%M:%S') }}</small></td>
+                    <td><strong class="text-dark">{{ log.username }}</strong></td>
+                    <td>
+                        {% if 'LOGIN' in log.action %}
+                            <span class="badge bg-success bg-opacity-10 text-success">LOGIN</span>
+                        {% elif 'LOGOUT' in log.action %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary">LOGOUT</span>
+                        {% elif 'UPLOAD' in log.action %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary">UPLOAD</span>
+                        {% elif 'DOWNLOAD' in log.action %}
+                            <span class="badge bg-info bg-opacity-10 text-info">DOWNLOAD</span>
+                        {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger">SECURITY</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ log.details }}</td>
+                    <td><code class="text-secondary small font-monospace">{{ log.current_hash[:12] }}...</code></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No audit logs recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function filterDocs() {
+    let input = document.getElementById('docSearch').value.toLowerCase();
+    let items = document.querySelectorAll('.list-group-item');
+    items.forEach(item => {
+        let text = item.textContent.toLowerCase();
+        item.style.display = text.includes(input) ? "" : "none";
+    });
+}
+</script>
+{% endblock %}
